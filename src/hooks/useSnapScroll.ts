@@ -46,6 +46,8 @@ export function useSnapScroll({ containerRef, indexRef, goTo, enabled }: Options
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
+      // 讨论抽屉打开时不翻页（Esc 由抽屉自己处理）
+      if (document.querySelector('.comments-backdrop')) return
       switch (e.key) {
         case 'ArrowDown':
         case 'PageDown':

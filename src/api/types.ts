@@ -41,3 +41,31 @@ export interface DeviceCodeResponse {
   expires_in: number
   interval: number
 }
+
+export interface IssueLabel {
+  id: number
+  name: string
+  color: string
+}
+
+export interface Issue {
+  id: number
+  number: number
+  title: string
+  state: 'open' | 'closed'
+  created_at: string
+  comments: number
+  user: { login: string; avatar_url: string }
+  html_url: string
+  labels?: IssueLabel[]
+  pull_request?: unknown
+  body?: string | null
+}
+
+export interface IssueComment {
+  id: number
+  user: { login: string; avatar_url: string }
+  created_at: string
+  body: string | null
+  html_url: string
+}

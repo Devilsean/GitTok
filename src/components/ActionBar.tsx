@@ -5,9 +5,17 @@ import { useAuth } from '../auth/AuthContext'
 import { formatCount } from '../utils/format'
 import { pushToast } from '../utils/toast'
 import { useLocalList } from '../utils/store'
-import { BookmarkIcon, HeartIcon, LinkIcon, StarIcon } from './icons'
+import { BookmarkIcon, CommentIcon, HeartIcon, LinkIcon, StarIcon } from './icons'
 
-export function ActionBar({ repo, active }: { repo: Repo; active: boolean }) {
+export function ActionBar({
+  repo,
+  active,
+  onComments,
+}: {
+  repo: Repo
+  active: boolean
+  onComments: () => void
+}) {
   const { token, setLoginOpen } = useAuth()
   const likes = useLocalList('gittok_likes')
   const marks = useLocalList('gittok_collections')
@@ -92,6 +100,16 @@ export function ActionBar({ repo, active }: { repo: Repo; active: boolean }) {
           <StarIcon filled={!!starred} />
         </span>
         <span className="count">{formatCount(repo.stargazers_count)}</span>
+      </button>
+      <button
+        className="action-btn"
+        onClick={onComments}
+        title="查看讨论（GitHub Issues）"
+      >
+        <span className="ico">
+          <CommentIcon />
+        </span>
+        <span className="count">{formatCount(repo.open_issues_count)}</span>
       </button>
       <button
         className={`action-btn ${marks.has(repo.id) ? 'marked' : ''}`}

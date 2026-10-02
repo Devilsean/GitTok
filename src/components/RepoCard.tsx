@@ -6,6 +6,7 @@ import { langColor } from '../utils/langColors'
 import { pushToast } from '../utils/toast'
 import { useLocalList } from '../utils/store'
 import { ActionBar } from './ActionBar'
+import { CommentsDrawer } from './CommentsDrawer'
 import { ReadmePreview } from './ReadmePreview'
 
 interface Burst {
@@ -30,6 +31,7 @@ export function RepoCard({
   const insight = getInsight(repo)
   const [bursts, setBursts] = useState<Burst[]>([])
   const burstSeq = useRef(0)
+  const [commentsOpen, setCommentsOpen] = useState(false)
   const likes = useLocalList('gittok_likes')
 
   function onDoubleClick(e: React.MouseEvent) {
@@ -119,13 +121,14 @@ export function RepoCard({
           </div>
         </header>
 
-        <ActionBar repo={repo} active={active} />
+        <ActionBar repo={repo} active={active} onComments={() => setCommentsOpen(true)} />
         {bursts.map((b) => (
           <span key={b.id} className="heart-burst" style={{ left: b.x, top: b.y }}>
             ❤️
           </span>
         ))}
       </div>
+      {commentsOpen && <CommentsDrawer repo={repo} onClose={() => setCommentsOpen(false)} />}
     </article>
   )
 }

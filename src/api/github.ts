@@ -1,4 +1,4 @@
-import type { GitHubUser, Repo, SearchReposResponse } from './types'
+import type { GitHubUser, Issue, IssueComment, Repo, SearchReposResponse } from './types'
 
 const API = 'https://api.github.com'
 
@@ -202,4 +202,39 @@ export async function refreshRateLimit(): Promise<void> {
   } catch {
     /* 忽略 */
   }
+}
+
+// ---- 讨论（直接复用 GitHub Issues 作为评论系统） ----
+const issuesCache = new Map<string, Issue[]>()
+
+/** 仓库讨论列表（已过滤掉 PR）。sort=comments 最热 / created 最新 */
+export async function getRepoIssues(
+  fullName: string,
+  sort: 'comments' | 'created',
+): Promise<Issue[]> {
+  const key = `${fullName}:${sort}`
+  const hit = issuesCache.get(key)
+  if (hit) return hit
+  const res = await ghFetch(
+    `/repos/${fullName}/issues?state=all&sort=${sort}&direction=desc&per_page=20`,
+  )
+  if (res.status === 404) throw new ApiError('该仓库未开启 Issues', 404)
+  if (!res.ok) throw new ApiError(`讨论加载失败（HTTP ${res.status}）`, res.status)
+  const data = (await res.json()) as Issue[]
+  const list = data.filter((i) => !i.pull_request)
+  issuesCache.set(key, list)
+  return list
+}
+
+const issueCommentsCache = new Map<string, IssueComment[]>()
+
+export async function getIssueComments(fullName: string, number: number): Promise<IssueComment[]> {
+  const key = `${fullName}#${number}`
+  const hit = issueCommentsCache.get(key)
+  if (hit) return hit
+  const res = await ghFetch(`/repos/${fullName}/issues/${number}/comments?per_page=30`)
+  if (!res.ok) throw new ApiError(`评论加载失败（HTTP ${res.status}）`, res.status)
+  const list = (await res.json()) as IssueComment[]
+  issueCommentsCache.set(key, list)
+  return list
 }
