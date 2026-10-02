@@ -19,6 +19,7 @@ export interface Repo {
   created_at: string
   pushed_at: string
   archived?: boolean
+  default_branch?: string
 }
 
 export interface GitHubUser {

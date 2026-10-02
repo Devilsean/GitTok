@@ -6,8 +6,8 @@ import { langColor } from '../utils/langColors'
 import { pushToast } from '../utils/toast'
 import { useLocalList } from '../utils/store'
 import { ActionBar } from './ActionBar'
+import { CardMedia } from './CardMedia'
 import { CommentsDrawer } from './CommentsDrawer'
-import { ReadmePreview } from './ReadmePreview'
 
 interface Burst {
   id: number
@@ -64,7 +64,7 @@ export function RepoCard({
       onDoubleClick={onDoubleClick}
     >
       <div className="card-inner">
-        <ReadmePreview fullName={repo.full_name} active={active} description={repo.description} />
+        <CardMedia repo={repo} active={active} />
 
         <header className="caption">
           {hasBadges && (
