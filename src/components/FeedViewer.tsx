@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useFeed } from '../hooks/useFeed'
 import { useSnapScroll } from '../hooks/useSnapScroll'
 import type { Feed } from '../feeds'
+import { bumpSeen } from '../utils/seen'
 import { RepoCard } from './RepoCard'
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
  * TikTok 式全屏竖向信息流：
  * - CSS scroll-snap 吸附 + 滚轮/键盘逐卡翻页（触摸设备走原生惯性滚动）
  * - IntersectionObserver 追踪当前卡片，驱动 README 懒加载与预取
+ * - 底部进度条、首次滑动引导、"已刷"计数
  * - 同 Tab 切走再切回时保留浏览位置（父组件保持挂载、仅隐藏）
  */
 export function FeedViewer({ feed, active, overlay }: Props) {
@@ -24,6 +26,16 @@ export function FeedViewer({ feed, active, overlay }: Props) {
   const [activeIndex, setActiveIndex] = useState(0)
   const indexRef = useRef(0)
   const startedKeyRef = useRef('')
+  const seenMaxRef = useRef(0)
+  const [hintDone, setHintDone] = useState(() => localStorage.getItem('gittok_hint_seen') === '1')
+
+  // feed 切换时回到顶部
+  useEffect(() => {
+    containerRef.current?.scrollTo({ top: 0 })
+    indexRef.current = 0
+    seenMaxRef.current = 0
+    setActiveIndex(0)
+  }, [feed?.key])
 
   // 首次激活该 Tab 时开始加载
   useEffect(() => {
@@ -38,12 +50,18 @@ export function FeedViewer({ feed, active, overlay }: Props) {
     if (status === 'ready' && items.length - activeIndex <= 5) void loadMore()
   }, [status, items.length, activeIndex, loadMore])
 
-  // feed 更换时回到顶部
+  // "已刷"计数 + 首次滑动引导
   useEffect(() => {
-    containerRef.current?.scrollTo({ top: 0 })
-    indexRef.current = 0
-    setActiveIndex(0)
-  }, [feed?.key])
+    if (!active) return
+    if (activeIndex > seenMaxRef.current) {
+      bumpSeen(activeIndex - seenMaxRef.current)
+      seenMaxRef.current = activeIndex
+    }
+    if (activeIndex > 0 && !hintDone) {
+      localStorage.setItem('gittok_hint_seen', '1')
+      setHintDone(true)
+    }
+  }, [active, activeIndex, hintDone])
 
   // 追踪当前可见卡片
   useEffect(() => {
@@ -85,7 +103,13 @@ export function FeedViewer({ feed, active, overlay }: Props) {
     <section className="viewer-wrap" style={{ display: active ? 'block' : 'none' }}>
       <div className="viewer" ref={containerRef}>
         {items.map((item, i) => (
-          <RepoCard key={item.repo.id} item={item} active={active && i === activeIndex} index={i} />
+          <RepoCard
+            key={item.repo.id}
+            item={item}
+            active={active && i === activeIndex}
+            index={i}
+            showRank={feed?.showRank ?? false}
+          />
         ))}
 
         {items.length === 0 && (status === 'idle' || status === 'loading') && (
@@ -127,7 +151,28 @@ export function FeedViewer({ feed, active, overlay }: Props) {
           </div>
         )}
       </div>
+
       {overlay}
+
+      {active && items.length > 0 && (
+        <div className="progress-wrap">
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{ width: `${((activeIndex + 1) / items.length) * 100}%` }}
+            />
+          </div>
+          <span className="progress-num">
+            {activeIndex + 1}/{items.length}
+          </span>
+        </div>
+      )}
+
+      {active && !hintDone && items.length > 0 && activeIndex === 0 && (
+        <div className="swipe-hint">
+          <span className="hint-arrow">︿</span> 滚轮 · ↑↓ · 滑动 切换 <span className="hint-arrow">﹀</span>
+        </div>
+      )}
     </section>
   )
 }

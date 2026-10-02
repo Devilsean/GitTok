@@ -10,6 +10,8 @@ export interface FeedItem {
 export interface Feed {
   key: string
   getPage: (page: number, perPage: number) => Promise<FeedItem[]>
+  /** 是否展示 #N 排名徽标（搜索/推荐流的顺序无排名意义，不展示） */
+  showRank?: boolean
 }
 
 export class RecommendError extends Error {}
@@ -23,6 +25,7 @@ export function makeTrendingFeed(windowDays: number): Feed {
   const q = `created:>${since} stars:>10`
   return {
     key: `trending:${windowDays}`,
+    showRank: true,
     getPage: async (page, perPage) => {
       const r = await searchRepos(q, page, perPage, 'stars')
       return r.items.map((repo) => ({ repo }))
@@ -36,6 +39,7 @@ export function makeLanguageFeed(kind: 'language' | 'topic', value: string): Fee
     kind === 'language' ? `language:${value} stars:>100` : `topic:${value} stars:>50`
   return {
     key: `lang:${kind}:${value}`,
+    showRank: true,
     getPage: async (page, perPage) => {
       const r = await searchRepos(q, page, perPage, 'stars')
       return r.items.map((repo) => ({ repo }))

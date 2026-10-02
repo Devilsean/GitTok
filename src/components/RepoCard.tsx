@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import type { FeedItem } from '../feeds'
 import { timeAgo } from '../utils/format'
+import { getInsight } from '../utils/insights'
 import { langColor } from '../utils/langColors'
 import { pushToast } from '../utils/toast'
 import { useLocalList } from '../utils/store'
@@ -13,9 +14,20 @@ interface Burst {
   y: number
 }
 
-export function RepoCard({ item, active, index }: { item: FeedItem; active: boolean; index: number }) {
+export function RepoCard({
+  item,
+  active,
+  index,
+  showRank,
+}: {
+  item: FeedItem
+  active: boolean
+  index: number
+  showRank: boolean
+}) {
   const { repo, reason } = item
   const color = langColor(repo.language)
+  const insight = getInsight(repo)
   const [bursts, setBursts] = useState<Burst[]>([])
   const burstSeq = useRef(0)
   const likes = useLocalList('gittok_likes')
@@ -35,21 +47,33 @@ export function RepoCard({ item, active, index }: { item: FeedItem; active: bool
     }
   }
 
+  const hasBadges = showRank || !!reason || !!insight.velocity || !!insight.tier
+
   return (
     <article
-      className="slide"
+      className={`slide ${active ? 'active' : ''}`}
       data-slide
       data-index={index}
       style={{
-        background: `radial-gradient(900px 620px at 85% -5%, ${color}2e, transparent 60%), linear-gradient(180deg, #0e1219 0%, #0b0e14 72%)`,
+        background: `radial-gradient(1000px 640px at 88% -8%, ${color}3d, transparent 62%),
+          radial-gradient(800px 500px at 8% 108%, ${color}21, transparent 58%),
+          linear-gradient(180deg, #0e1219 0%, #0b0e14 72%)`,
       }}
       onDoubleClick={onDoubleClick}
     >
       <div className="card-inner">
-        <ReadmePreview fullName={repo.full_name} active={active} />
+        <ReadmePreview fullName={repo.full_name} active={active} description={repo.description} />
 
         <header className="caption">
-          {reason && <div className="reason-chip">✨ {reason}</div>}
+          {hasBadges && (
+            <div className="hook-badges">
+              {showRank && <span className="pill rank">#{index + 1}</span>}
+              {reason && <span className="pill reason">✨ {reason}</span>}
+              {insight.velocity && <span className="pill vel">🔥 {insight.velocity}</span>}
+              {insight.tier && <span className={`pill tier-${insight.tier.kind}`}>{insight.tier.label}</span>}
+            </div>
+          )}
+
           <div className="owner-row">
             <img className="avatar" src={repo.owner.avatar_url} alt={repo.owner.login} loading="lazy" />
             <a className="owner-link" href={repo.owner.html_url} target="_blank" rel="noreferrer">
@@ -59,21 +83,24 @@ export function RepoCard({ item, active, index }: { item: FeedItem; active: bool
             <span className="muted">{timeAgo(repo.created_at)}创建</span>
             {repo.archived && <span className="archived-tag">已归档</span>}
           </div>
+
           <h2 className="repo-name">
-            <a href={repo.html_url} target="_blank" rel="noreferrer" title="在 GitHub 打开（Enter）">
+            <a href={repo.html_url} target="_blank" rel="noreferrer" title="在 GitHub 打开">
               {repo.full_name}
             </a>
           </h2>
+
           {repo.description && <p className="desc">{repo.description}</p>}
+
           <div className="meta-row">
             {repo.language && (
-              <span className="meta-item">
+              <span className="meta-item lang-pill">
                 <span className="lang-dot" style={{ background: color }} />
                 {repo.language}
               </span>
             )}
-            <span className="meta-item">⭐ {repo.stargazers_count.toLocaleString()}</span>
-            <span className="meta-item">🍴 {repo.forks_count.toLocaleString()}</span>
+            <span className="meta-item star-count">★ {repo.stargazers_count.toLocaleString()}</span>
+            <span className="meta-item">⑂ {repo.forks_count.toLocaleString()}</span>
             {repo.topics && repo.topics.length > 0 && (
               <span className="topics">
                 {repo.topics.slice(0, 5).map((t) => (

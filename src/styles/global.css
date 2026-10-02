@@ -172,11 +172,15 @@ button {
 
 .desc {
   margin: 0;
-  font-size: 16px;
-  line-height: 1.55;
-  color: #ccd6e1;
+  font-size: 17.5px;
+  line-height: 1.6;
+  color: #e0e8f2;
   max-width: 640px;
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .meta-row {
@@ -229,6 +233,239 @@ button {
   background: rgba(254, 44, 85, 0.14);
   border: 1px solid rgba(254, 44, 85, 0.35);
   color: #ffb3c2;
+}
+
+/* ---------- 钩子徽标（排名/速度/成就） ---------- */
+
+.hook-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 13px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  white-space: nowrap;
+}
+
+.pill.rank {
+  background: var(--accent);
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 18px rgba(254, 44, 85, 0.45);
+}
+
+.pill.reason {
+  background: rgba(171, 111, 255, 0.16);
+  border: 1px solid rgba(171, 111, 255, 0.4);
+  color: #dcc2ff;
+  font-weight: 500;
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pill.vel {
+  background: rgba(255, 159, 10, 0.16);
+  border: 1px solid rgba(255, 159, 10, 0.45);
+  color: #ffc06e;
+}
+
+.pill.tier-legend {
+  background: rgba(227, 179, 65, 0.16);
+  border: 1px solid rgba(227, 179, 65, 0.5);
+  color: #f0ce7c;
+}
+
+.pill.tier-hot {
+  background: rgba(254, 44, 85, 0.14);
+  border: 1px solid rgba(254, 44, 85, 0.45);
+  color: #ff9db1;
+}
+
+.pill.tier-new {
+  background: rgba(37, 244, 238, 0.12);
+  border: 1px solid rgba(37, 244, 238, 0.4);
+  color: #8ff5f1;
+}
+
+/* ---------- README 一句话简介卡 ---------- */
+
+.digest-card {
+  width: min(680px, 100%);
+  background: var(--panel-strong);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2);
+  border-radius: 14px;
+  padding: 14px 18px 12px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.digest-card:hover {
+  transform: translateY(-2px);
+  border-left-color: var(--accent);
+}
+
+.digest-quote {
+  font-size: 14.5px;
+  line-height: 1.75;
+  color: #c9d4e0;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.digest-toggle {
+  margin-top: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent-2);
+}
+
+/* ---------- 进度条 / 滑动引导 / 已刷计数 ---------- */
+
+.progress-wrap {
+  position: absolute;
+  bottom: 82px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 25;
+  pointer-events: none;
+}
+
+.progress-bar {
+  width: 170px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), #ff6b8b);
+  transition: width 0.35s ease;
+}
+
+.progress-num {
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.swipe-hint {
+  position: absolute;
+  top: 126px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: var(--panel-strong);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--muted);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+  animation: hint-float 1.8s ease-in-out infinite;
+}
+
+.hint-arrow {
+  color: var(--accent-2);
+  font-weight: 700;
+  animation: hint-arrow 1.8s ease-in-out infinite;
+}
+
+@keyframes hint-float {
+  50% {
+    transform: translateX(-50%) translateY(-5px);
+  }
+}
+
+@keyframes hint-arrow {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.seen-chip {
+  font-size: 12.5px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- 卡片入场动画 ---------- */
+
+.slide .caption,
+.slide .digest-card,
+.slide .hook-badges {
+  opacity: 0;
+}
+
+.slide.active .caption {
+  animation: rise-in 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) 0.05s both;
+}
+
+.slide.active .digest-card {
+  animation: rise-in 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) 0.16s both;
+}
+
+.slide.active .hook-badges {
+  animation: rise-in 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) 0s both;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide .caption,
+  .slide .digest-card,
+  .slide .hook-badges {
+    opacity: 1;
+  }
+  .slide.active .caption,
+  .slide.active .digest-card,
+  .slide.active .hook-badges {
+    animation: none;
+  }
+  .swipe-hint,
+  .hint-arrow {
+    animation: none;
+  }
 }
 
 /* ---------- README 预览 ---------- */
@@ -343,14 +580,11 @@ button {
   padding-left: 1.4em;
 }
 
-.readme-fade {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 72px;
-  background: linear-gradient(180deg, transparent, rgba(11, 14, 20, 0.95));
-  pointer-events: none;
+/* ---------- README 预览（展开态） ---------- */
+
+.readme-panel.open {
+  max-height: 46dvh;
+  overflow-y: auto;
 }
 
 .readme-skeleton {
@@ -1124,5 +1358,62 @@ button {
 
   .topbar {
     padding: 0 14px;
+  }
+}
+
+/* ---------- v0.2 视觉强化补充 ---------- */
+
+.meta-item.star-count {
+  color: var(--gold);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.meta-item.lang-pill {
+  font-weight: 600;
+  color: var(--text);
+}
+
+@media (max-width: 720px) {
+  .digest-card {
+    padding: 12px 14px 10px;
+  }
+
+  .digest-quote {
+    font-size: 13.5px;
+    -webkit-line-clamp: 3;
+  }
+
+  .desc {
+    font-size: 15px;
+    -webkit-line-clamp: 2;
+  }
+
+  .progress-wrap {
+    bottom: 76px;
+  }
+
+  .swipe-hint {
+    top: 118px;
+    font-size: 12px;
+    padding: 7px 14px;
+    width: max-content;
+  }
+
+  .hook-badges {
+    gap: 6px;
+  }
+
+  .pill {
+    font-size: 12px;
+    padding: 4px 11px;
+  }
+
+  .pill.reason {
+    max-width: 260px;
+  }
+
+  .readme-panel.open {
+    max-height: 40dvh;
   }
 }

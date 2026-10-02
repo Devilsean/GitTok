@@ -1,9 +1,11 @@
 import { GitHubMark } from './icons'
 import { RateLimitBadge } from './RateLimitBadge'
 import { useAuth } from '../auth/AuthContext'
+import { useSeen } from '../utils/seen'
 
 export function TopBar() {
   const { user, setLoginOpen, signOut } = useAuth()
+  const seen = useSeen()
   return (
     <header className="topbar">
       <a className="logo" href="https://github.com/trending" target="_blank" rel="noreferrer">
@@ -13,6 +15,11 @@ export function TopBar() {
         </span>
       </a>
       <div className="topbar-right">
+        {seen > 0 && (
+          <div className="seen-chip" title="本次累计刷过的仓库数">
+            🛋️ 已刷 {seen}
+          </div>
+        )}
         <RateLimitBadge />
         {user ? (
           <div className="user-chip">

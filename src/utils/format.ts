@@ -43,6 +43,11 @@ export function cleanReadme(md: string): string {
       continue
     }
     if (line.includes('<!--')) continue
+    if (line.trim() === '') {
+      // 原始空行保留（段落分隔依据），连续空行压成一个
+      if (out[out.length - 1] !== '') out.push('')
+      continue
+    }
     const cleaned = line.replace(/<[^>]*>/g, '').replace(/\s{2,}/g, ' ')
     if (cleaned.trim() === '') continue
     out.push(cleaned)
