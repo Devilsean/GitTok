@@ -1,0 +1,33 @@
+import { GitHubMark } from './icons'
+import { RateLimitBadge } from './RateLimitBadge'
+import { useAuth } from '../auth/AuthContext'
+
+export function TopBar() {
+  const { user, setLoginOpen, signOut } = useAuth()
+  return (
+    <header className="topbar">
+      <a className="logo" href="https://github.com/trending" target="_blank" rel="noreferrer">
+        <GitHubMark size={24} />
+        <span>
+          Git<em>Tok</em>
+        </span>
+      </a>
+      <div className="topbar-right">
+        <RateLimitBadge />
+        {user ? (
+          <div className="user-chip">
+            <img src={user.avatar_url} className="avatar-s" alt={user.login} title={user.login} />
+            <span className="user-name">{user.login}</span>
+            <button className="link-btn" onClick={signOut}>
+              退出
+            </button>
+          </div>
+        ) : (
+          <button className="btn accent" onClick={() => setLoginOpen(true)}>
+            登录 GitHub
+          </button>
+        )}
+      </div>
+    </header>
+  )
+}

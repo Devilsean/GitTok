@@ -1,0 +1,23 @@
+node_modules
+dist
+dist-ssr
+*.local
+
+# 环境变量（包含个人配置）
+.env
+.env.*
+!.env.example
+
+# 编辑器与系统文件
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ZCode 会话产物
+.zcode/
