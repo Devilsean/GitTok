@@ -71,18 +71,16 @@ export function CardMedia({ repo, active }: { repo: Repo; active: boolean }) {
 
   if (heroSrc && !textOnly) {
     return (
-      <div className="hero" title={repo.full_name}>
-        <img className="hero-bg" src={heroSrc} alt="" aria-hidden loading="lazy" />
+      <div className="slide-media" key={heroSrc}>
         <img
-          key={heroSrc}
-          className="hero-img"
+          className="m-img"
           src={heroSrc}
           alt={`${repo.full_name} 预览图`}
           loading="lazy"
           onLoad={(e) => e.currentTarget.classList.add('loaded')}
           onError={() => markBroken(heroSrc)}
         />
-        <span className="hero-tag">{readmeHero ? 'README 预览' : '项目概览'}</span>
+        <div className="media-scrim" />
       </div>
     )
   }

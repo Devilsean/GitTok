@@ -275,7 +275,7 @@ button {
 }
 
 .pill.vel {
-  background: rgba(255, 159, 10, 0.16);
+  background: rgba(60, 34, 4, 0.55);
   border: 1px solid rgba(255, 159, 10, 0.45);
   color: #ffc06e;
 }
@@ -1658,85 +1658,282 @@ button {
   }
 }
 
-/* ---------- 项目媒体位（README 主图 / 社交预览图） ---------- */
+/* ---------- 全屏沉浸媒体（TikTok 式：媒体铺满 + 底部渐变遮罩） ---------- */
 
-.hero {
-  position: relative;
-  width: min(780px, 100%);
-  height: min(40dvh, 430px);
-  border-radius: var(--radius);
-  overflow: hidden;
-  border: 1px solid var(--border);
-  background: #05070b;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
-  flex-shrink: 1;
-  min-height: 0;
-}
-
-.hero-bg {
+.slide-media {
   position: absolute;
-  inset: -30px;
-  width: calc(100% + 60px);
-  height: calc(100% + 60px);
-  object-fit: cover;
-  filter: blur(26px) saturate(1.3);
-  opacity: 0.55;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  animation: media-in 0.5s ease both, kenburns 20s ease-in-out infinite alternate;
 }
 
-.hero-img {
+.m-img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   opacity: 0;
-  transition: opacity 0.45s ease, transform 0.25s ease;
+  transition: opacity 0.5s ease;
 }
 
-.hero-img.loaded {
+.m-img.loaded {
   opacity: 1;
 }
 
-.hero:hover .hero-img.loaded {
-  transform: scale(1.015);
-}
-
-.hero-tag {
+.media-scrim {
   position: absolute;
-  right: 10px;
-  bottom: 10px;
-  font-size: 11px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: rgba(2, 6, 12, 0.68);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  z-index: 2;
-  pointer-events: none;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 7, 11, 0.62) 0%,
+    rgba(5, 7, 11, 0.16) 15%,
+    rgba(5, 7, 11, 0.42) 32%,
+    rgba(5, 7, 11, 0.68) 50%,
+    rgba(5, 7, 11, 0.8) 68%,
+    rgba(5, 7, 11, 0.96) 86%,
+    rgba(5, 7, 11, 0.99) 100%
+  );
 }
 
-/* 媒体区入场动画与卡片其他部分一致 */
-.slide .hero {
-  opacity: 0;
+@keyframes media-in {
+  from {
+    opacity: 0;
+  }
 }
 
-.slide.active .hero {
-  animation: rise-in 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) 0.1s both;
+@keyframes kenburns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.07);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .slide .hero {
-    opacity: 1;
-  }
-  .slide.active .hero {
-    animation: none;
+  .slide-media {
+    animation: media-in 0.5s ease both;
   }
 }
 
-@media (max-width: 720px) {
-  .hero {
-    height: 30dvh;
+/* 内容层压在媒体/遮罩之上 */
+.digest-card,
+.readme-panel {
+  z-index: 2;
+}
+
+/* ---------- TikTok 式顶部文字切换器 ---------- */
+
+.chipbar {
+  background: none;
+  border: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 2px 6px;
+  gap: 2px;
+  box-shadow: none;
+}
+
+.chip {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  font-size: 14.5px;
+  padding: 6px 12px;
+  position: relative;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
+}
+
+.chip:hover {
+  color: #fff;
+}
+
+.chip.active {
+  color: #fff;
+  background: none;
+  border: none;
+}
+
+.chip.active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 1px;
+  width: 22px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.chip-grid .chip {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  font-weight: 500;
+  font-size: 13.5px;
+  text-shadow: none;
+}
+
+.chip-grid .chip.active {
+  background: rgba(254, 44, 85, 0.16);
+}
+
+.chip-grid .chip.active::after {
+  display: none;
+}
+
+/* ---------- 旋转唱片 + 跑马灯 ---------- */
+
+.sound-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.disc {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background:
+    radial-gradient(circle at center, var(--accent) 0 3px, transparent 3px),
+    conic-gradient(#16181d, #3a3f47, #16181d, #3a3f47, #16181d);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: spin 3.5s linear infinite;
+}
+
+.marquee {
+  width: 300px;
+  max-width: 56vw;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.marquee-inner {
+  display: inline-flex;
+  white-space: nowrap;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
+  animation: marquee 16s linear infinite;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
   }
+}
+
+/* ---------- 操作栏压深色、进度条贴底 ---------- */
+
+.action-btn .ico {
+  background: rgba(2, 6, 12, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.action-btn:hover .ico {
+  background: rgba(2, 6, 12, 0.62);
+}
+
+.action-btn.liked .ico {
+  background: var(--accent);
+  border-color: transparent;
+}
+
+.action-btn.starred .ico {
+  background: var(--gold);
+  border-color: transparent;
+}
+
+.action-btn.marked .ico {
+  background: var(--accent-2);
+  border-color: transparent;
+}
+
+.progress-wrap {
+  left: 16px;
+  right: 16px;
+  bottom: 74px;
+  transform: none;
+  width: auto;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.progress-num {
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 600;
+}
+
+/* ---------- 说明文字在媒体上更挺拔 ---------- */
+
+.desc {
+  color: #f2f6fa;
+  font-size: 18px;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.65);
+}
+
+.meta-row {
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 720px) {
+  .marquee {
+    width: 200px;
+  }
+
+  .chip {
+    font-size: 13px;
+  }
+}
+
+/* ---------- 徽标压深色底（亮图可读性） ---------- */
+
+.pill.vel,
+.pill.tier-legend,
+.pill.tier-hot,
+.pill.tier-new,
+.pill.reason {
+  background: rgba(2, 6, 12, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.pill.vel {
+  border: 1px solid rgba(255, 159, 10, 0.55);
+}
+
+.pill.tier-legend {
+  border: 1px solid rgba(227, 179, 65, 0.55);
+}
+
+.pill.tier-hot {
+  border: 1px solid rgba(254, 44, 85, 0.55);
+}
+
+.pill.tier-new {
+  border: 1px solid rgba(37, 244, 238, 0.5);
+}
+
+.pill.reason {
+  border: 1px solid rgba(171, 111, 255, 0.5);
+}
+
+.owner-row,
+.meta-row {
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85), 0 0 24px rgba(0, 0, 0, 0.45);
+}
+
+.owner-link {
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
 }

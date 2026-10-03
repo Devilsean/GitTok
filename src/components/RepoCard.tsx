@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { FeedItem } from '../feeds'
-import { timeAgo } from '../utils/format'
+import { formatCount, timeAgo } from '../utils/format'
 import { getInsight } from '../utils/insights'
 import { langColor } from '../utils/langColors'
 import { pushToast } from '../utils/toast'
@@ -50,6 +50,9 @@ export function RepoCard({
   }
 
   const hasBadges = showRank || !!reason || !!insight.velocity || !!insight.tier
+  const soundText = [repo.language, ...(repo.topics ?? []).slice(0, 4).map((t) => `#${t}`)]
+    .filter(Boolean)
+    .join(' · ')
 
   return (
     <article
@@ -119,6 +122,22 @@ export function RepoCard({
               </span>
             )}
           </div>
+
+          {soundText && (
+            <div className="sound-bar">
+              <span className="disc" />
+              <div className="marquee">
+                <div className="marquee-inner">
+                  <span>
+                    {soundText} · ⭐ {formatCount(repo.stargazers_count)} · 双击点赞 ·{' '}
+                  </span>
+                  <span>
+                    {soundText} · ⭐ {formatCount(repo.stargazers_count)} · 双击点赞 ·{' '}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </header>
 
         <ActionBar repo={repo} active={active} onComments={() => setCommentsOpen(true)} />
