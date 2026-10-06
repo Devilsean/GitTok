@@ -69,7 +69,8 @@ export function CommentsDrawer({ repo, onClose }: { repo: Repo; onClose: () => v
       <div className="comments-sheet" onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
         <div className="comments-head">
           <div className="comments-title">
-            💬 讨论 <span className="muted">· {repo.open_issues_count.toLocaleString()}</span>
+            💬 讨论
+            {issues && <span className="muted"> · {issues.length} 条</span>}
           </div>
           <div className="comments-sort">
             <button className={`sort-btn ${sort === 'comments' ? 'active' : ''}`} onClick={() => setSort('comments')}>

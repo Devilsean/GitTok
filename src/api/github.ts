@@ -10,6 +10,7 @@ export function getToken(): string | null {
 
 export function setToken(token: string | null): void {
   authToken = token
+  starCache.clear()
   if (token) localStorage.setItem('gittok_token', token)
   else localStorage.removeItem('gittok_token')
 }
@@ -146,8 +147,20 @@ export async function searchRepos(
 // ---- README ----
 const readmeCache = new Map<string, string | null>()
 
-export async function getReadme(fullName: string): Promise<string | null> {
+/**
+ * README 拉取：优先走 raw.githubusercontent.com 直链——不消耗 GitHub API 额度、
+ * 也不需要登录，未登录用户因此能刷得远得多（60 次/小时的额度只花在搜索上）。
+ * raw 拿不到时回退 API（能精确命中 README.rst 等非常规文件名）。
+ */
+export async function getReadme(fullName: string, branch?: string): Promise<string | null> {
   if (readmeCache.has(fullName)) return readmeCache.get(fullName)!
+  if (branch) {
+    const raw = await rawReadme(fullName, branch)
+    if (raw !== null) {
+      readmeCache.set(fullName, raw)
+      return raw
+    }
+  }
   const res = await ghFetch(`/repos/${fullName}/readme`, {
     headers: { Accept: 'application/vnd.github.raw' },
   })
@@ -159,6 +172,25 @@ export async function getReadme(fullName: string): Promise<string | null> {
   const text = await res.text()
   readmeCache.set(fullName, text)
   return text
+}
+
+/** raw 直链并行尝试常见文件名；全部 404 / 网络失败返回 null，由调用方回退 API */
+async function rawReadme(fullName: string, branch: string): Promise<string | null> {
+  const names = ['README.md', 'readme.md']
+  const results = await Promise.all(
+    names.map(async (name) => {
+      try {
+        const res = await fetch(`https://raw.githubusercontent.com/${fullName}/${branch}/${name}`)
+        if (!res.ok) return null
+        const text = await res.text()
+        // 过短的内容多半是占位文件，交给 API 精确处理
+        return text.trim().length >= 80 ? text : null
+      } catch {
+        return null
+      }
+    }),
+  )
+  return results.find((t): t is string => !!t) ?? null
 }
 
 // ---- 用户 / Star ----
@@ -174,16 +206,22 @@ export async function getStarred(page = 1): Promise<Repo[]> {
   return res.json()
 }
 
+// Star 状态的会话级缓存：卡片每次激活都重新查询的话，每张卡都要烧掉 1 次核心额度
+const starCache = new Map<string, boolean>()
+
 export async function checkStarred(fullName: string): Promise<boolean> {
+  const hit = starCache.get(fullName)
+  if (hit !== undefined) return hit
   const res = await ghFetch(`/user/starred/${fullName}`)
-  if (res.status === 204) return true
-  if (res.status === 404) return false
-  return false
+  const v = res.status === 204
+  starCache.set(fullName, v)
+  return v
 }
 
 export async function setStar(fullName: string, starred: boolean): Promise<void> {
   const res = await ghFetch(`/user/starred/${fullName}`, { method: starred ? 'PUT' : 'DELETE' })
   if (!res.ok) throw new ApiError(`同步 Star 失败（HTTP ${res.status}）`, res.status)
+  starCache.set(fullName, starred)
 }
 
 // 主动查询限额（/rate_limit 本身不消耗额度）

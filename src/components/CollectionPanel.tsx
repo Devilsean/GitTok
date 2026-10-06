@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { formatCount } from '../utils/format'
+import { ogImage } from '../utils/media'
 import { pushToast } from '../utils/toast'
 import { useLocalList } from '../utils/store'
 
@@ -43,6 +44,12 @@ export function CollectionPanel() {
         <div className="cards-grid">
           {list.map(({ repo }) => (
             <div key={repo.id} className="mini-card">
+              <img
+                className="mini-og"
+                src={ogImage(repo.full_name)}
+                alt={`${repo.full_name} 预览图`}
+                loading="lazy"
+              />
               <div className="mini-head">
                 <img src={repo.owner.avatar_url} className="avatar-s" alt={repo.owner.login} loading="lazy" />
                 <a href={repo.html_url} target="_blank" rel="noreferrer">

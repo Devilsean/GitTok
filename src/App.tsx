@@ -22,12 +22,60 @@ const TRENDING_WINDOWS: { label: string; days: number }[] = [
   { label: '近三月', days: 90 },
 ]
 
+const TAB_IDS: TabId[] = ['trending', 'language', 'search', 'recommend', 'mine']
+
+interface SavedSession {
+  tab?: TabId
+  trendDays?: number
+  langSel?: { kind: 'language' | 'topic' | 'author'; value: string } | null
+  keyword?: string
+}
+
+function loadSession(): SavedSession {
+  try {
+    const s = JSON.parse(localStorage.getItem('gittok_session') ?? '{}') as SavedSession
+    return {
+      tab: s.tab && TAB_IDS.includes(s.tab) ? s.tab : undefined,
+      trendDays: TRENDING_WINDOWS.some((w) => w.days === s.trendDays) ? s.trendDays : undefined,
+      langSel:
+        s.langSel &&
+        (s.langSel.kind === 'language' || s.langSel.kind === 'topic' || s.langSel.kind === 'author') &&
+        typeof s.langSel.value === 'string'
+          ? s.langSel
+          : null,
+      keyword: typeof s.keyword === 'string' ? s.keyword : undefined,
+    }
+  } catch {
+    return {}
+  }
+}
+
 function Shell() {
   const { user, setLoginOpen } = useAuth()
-  const [tab, setTab] = useState<TabId>('trending')
-  const [trendDays, setTrendDays] = useState(7)
-  const [langSel, setLangSel] = useState<{ kind: 'language' | 'topic'; value: string } | null>(null)
-  const [keyword, setKeyword] = useState('')
+  const saved = useMemo(loadSession, [])
+  const [tab, setTab] = useState<TabId>(saved.tab ?? 'trending')
+  const [trendDays, setTrendDays] = useState(saved.trendDays ?? 7)
+  const [langSel, setLangSel] = useState<{ kind: 'language' | 'topic' | 'author'; value: string } | null>(
+    saved.langSel ?? null,
+  )
+  const [keyword, setKeyword] = useState(saved.keyword ?? '')
+  // 推荐流"换一批"种子：变化时重建推荐 feed，搜索页码随之偏移
+  const [recSeed, setRecSeed] = useState(0)
+
+  // 卡片上的 #话题 / 作者头像：站内直接切进对应频道流（TikTok 式闭环）
+  const openTopic = (t: string) => {
+    setTab('language')
+    setLangSel({ kind: 'topic', value: t })
+  }
+  const openAuthor = (login: string) => {
+    setTab('language')
+    setLangSel({ kind: 'author', value: login })
+  }
+
+  // 记住本次会话选择（tab / 时间窗 / 频道 / 搜索词），刷新后接着刷
+  useEffect(() => {
+    localStorage.setItem('gittok_session', JSON.stringify({ tab, trendDays, langSel, keyword }))
+  }, [tab, trendDays, langSel, keyword])
 
   useEffect(() => {
     void refreshRateLimit()
@@ -42,16 +90,21 @@ function Shell() {
     () => (keyword.trim() ? makeSearchFeed(keyword) : null),
     [keyword],
   )
-  const recommendFeed = useMemo(() => (user ? makeRecommendFeed() : null), [user?.login])
+  const recommendFeed = useMemo(
+    () => (user ? makeRecommendFeed(recSeed) : null),
+    [user?.login, recSeed],
+  )
 
   return (
     <div className="app">
-      <TopBar />
+      <TopBar onHome={() => setTab('trending')} />
 
       <main className="stage">
         <FeedViewer
           feed={trendingFeed}
           active={tab === 'trending'}
+          onTopic={openTopic}
+          onAuthor={openAuthor}
           overlay={
             <div className="overlay-top">
               <div className="chipbar">
@@ -77,12 +130,14 @@ function Shell() {
           <FeedViewer
             feed={langFeed}
             active={tab === 'language'}
+            onTopic={openTopic}
+            onAuthor={openAuthor}
             overlay={
               langSel && (
                 <div className="overlay-top">
                   <div className="chipbar">
                     <span className="chip active">
-                      {langSel.kind === 'topic' ? '#' : ''}
+                      {langSel.kind === 'topic' ? '#' : langSel.kind === 'author' ? '👤 ' : ''}
                       {langSel.value}
                     </span>
                     <button className="chip" onClick={() => setLangSel(null)}>
@@ -101,6 +156,8 @@ function Shell() {
           <FeedViewer
             feed={searchFeed}
             active={tab === 'search'}
+            onTopic={openTopic}
+            onAuthor={openAuthor}
             overlay={
               searchFeed && (
                 <div className="overlay-top">
@@ -117,7 +174,21 @@ function Shell() {
         )}
 
         {user ? (
-          <FeedViewer feed={recommendFeed} active={tab === 'recommend'} />
+          <FeedViewer
+            feed={recommendFeed}
+            active={tab === 'recommend'}
+            onTopic={openTopic}
+            onAuthor={openAuthor}
+            overlay={
+              <div className="overlay-top">
+                <div className="chipbar">
+                  <button className="chip" onClick={() => setRecSeed((s) => s + 1)}>
+                    🔄 换一批
+                  </button>
+                </div>
+              </div>
+            }
+          />
         ) : (
           <div className="viewer-wrap" style={{ display: tab === 'recommend' ? 'block' : 'none' }}>
             <div className="slide slide-center">

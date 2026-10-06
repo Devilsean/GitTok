@@ -3,12 +3,20 @@ import { RateLimitBadge } from './RateLimitBadge'
 import { useAuth } from '../auth/AuthContext'
 import { useSeen } from '../utils/seen'
 
-export function TopBar() {
+export function TopBar({ onHome }: { onHome: () => void }) {
   const { user, setLoginOpen, signOut } = useAuth()
   const seen = useSeen()
   return (
     <header className="topbar">
-      <a className="logo" href="https://github.com/trending" target="_blank" rel="noreferrer">
+      <a
+        className="logo"
+        href="#"
+        title="回到热门"
+        onClick={(e) => {
+          e.preventDefault()
+          onHome()
+        }}
+      >
         <GitHubMark size={24} />
         <span>
           Git<em>Tok</em>

@@ -33,13 +33,17 @@ export function makeTrendingFeed(windowDays: number): Feed {
   }
 }
 
-/** 语言 / 主题筛选流 */
-export function makeLanguageFeed(kind: 'language' | 'topic', value: string): Feed {
+/** 语言 / 主题 / 作者筛选流（kind=author 时 value 为登录名，站内"作者主页"流） */
+export function makeLanguageFeed(kind: 'language' | 'topic' | 'author', value: string): Feed {
   const q =
-    kind === 'language' ? `language:${value} stars:>100` : `topic:${value} stars:>50`
+    kind === 'language'
+      ? `language:${value} stars:>100`
+      : kind === 'topic'
+        ? `topic:${value} stars:>50`
+        : `user:${value}`
   return {
     key: `lang:${kind}:${value}`,
-    showRank: true,
+    showRank: kind !== 'author',
     getPage: async (page, perPage) => {
       const r = await searchRepos(q, page, perPage, 'stars')
       return r.items.map((repo) => ({ repo }))
@@ -63,8 +67,9 @@ export function makeSearchFeed(keyword: string): Feed {
  * 个性化推荐流：拉取用户最近 Star 的仓库（前 200 个），
  * 统计高频语言与主题，围绕 top 主题/语言搜索高星仓库，
  * 剔除已 Star 的，合并打散后作为推荐池。
+ * seed 用于"换一批"：改变搜索页码并重新打散。
  */
-export function makeRecommendFeed(): Feed {
+export function makeRecommendFeed(seed = 0): Feed {
   let pool: FeedItem[] | null = null
   let poolPromise: Promise<FeedItem[]> | null = null
 
@@ -108,12 +113,13 @@ export function makeRecommendFeed(): Feed {
     }
 
     const buckets = await Promise.all(
-      seeds.map(async (seed) => {
+      seeds.map(async (s) => {
         try {
-          const r = await searchRepos(seed.query, 1, 12, 'stars')
-          return { seed, repos: r.items }
+          // 按 seed 偏移页码，"换一批"拉到不同的内容，而不只是重排
+          const r = await searchRepos(s.query, 1 + (seed % 3), 12, 'stars')
+          return { seed: s, repos: r.items }
         } catch {
-          return { seed, repos: [] as Repo[] }
+          return { seed: s, repos: [] as Repo[] }
         }
       }),
     )
@@ -136,7 +142,7 @@ export function makeRecommendFeed(): Feed {
   }
 
   return {
-    key: 'recommend',
+    key: `recommend:${seed}`,
     getPage: async (page, perPage) => {
       if (!pool) {
         poolPromise = poolPromise ?? buildPool()
